@@ -52,4 +52,7 @@ Mkfile.old
 dkms.conf
 
 # Build files
-main
+/build
+
+# IDE specific files
+.vscode
