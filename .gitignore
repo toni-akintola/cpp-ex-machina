@@ -3,6 +3,8 @@
 
 # Environment variables
 
+# Environment variables
+/.env
 # Object files
 *.o
 *.ko
