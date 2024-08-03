@@ -1,12 +1,7 @@
 #include <iostream>
 #include <curl/curl.h>
 #include <Eigen/Dense>
-
-size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* output) {
-    size_t totalSize = size * nmemb;
-    output->append((char*)contents, totalSize);
-    return totalSize;
-}
+#include <stock.h>
 
 int main() {
     Eigen::MatrixXd A(2, 3);
@@ -19,22 +14,12 @@ int main() {
          11, 12;
 
     Eigen::MatrixXd C = A * B;
+    std::vector<Stock> stocks = getStocks();
 
-    std::cout  << C << std::endl;
-    // CURL example
-    CURL* curl;
-    CURLcode res;
-    std::string readBuffer;
-
-    curl = curl_easy_init();
-    if (curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, "http://www.example.com");
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-        res = curl_easy_perform(curl);
-        curl_easy_cleanup(curl);
-
-        std::cout << readBuffer << std::endl;
+    for (auto &stock : stocks)
+    {
+        std::cout << "Ticker: " << stock.get_ticker() << " Price: " << stock.get_price() << std::endl;
     }
+
     return 0;
 }
