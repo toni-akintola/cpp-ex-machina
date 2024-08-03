@@ -8,7 +8,7 @@
 ## Building the Project
 1. Clone the repository
 2. Install dependencies:
-   - macOS: `brew install eigen curl`
+   - macOS: `brew install eigen curl fmt nlohmann-json`
    - Ubuntu: `sudo apt-get install libeigen3-dev libcurl4-openssl-dev`
 3. Build:
 ```
