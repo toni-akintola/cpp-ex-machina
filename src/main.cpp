@@ -1,7 +1,7 @@
 #include <iostream>
 #include <curl/curl.h>
 #include <Eigen/Dense>
-#include <stock.h>
+#include "stock.h"
 
 int main() {
     Eigen::MatrixXd A(2, 3);
@@ -14,12 +14,7 @@ int main() {
          11, 12;
 
     Eigen::MatrixXd C = A * B;
-    std::vector<Stock> stocks = getStocks();
-
-    for (auto &stock : stocks)
-    {
-        std::cout << "Ticker: " << stock.get_ticker() << " Price: " << stock.get_price() << std::endl;
-    }
+    parseData();
 
     return 0;
 }

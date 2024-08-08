@@ -11,59 +11,74 @@ size_t WriteCallback(void *contents, size_t size, size_t nmemb, std::string *out
     return totalSize;
 }
 
-Stock::Stock(double p, std::string underlyingTicker)
-{
-    price = p;
-    ticker = underlyingTicker;
-}
-
-double Stock::get_price()
-{
-    return price;
-}
-
-std::string Stock::get_ticker()
-{
-    return ticker;
-}
-
-std::vector<Stock> getStocks()
+std::tuple<std::vector<std::string>, std::vector<float>, int> getStocks()
 {
 
     CURL *curl = curl_easy_init();
-    std::vector<Stock> stocks = {};
-    std::vector<std::string> tickers = {"O:SPY251219C00650000", "O:NVDA240809C00075000", "O:CRWD240809C00215000", "O:AMC240809C00003500"};
+    std::vector<std::string> dates;
+    std::vector<float> closePrices;
 
     if (curl)
     {
-        for (auto &ticker : tickers)
+        // Set ticker and define http request endpoint
+        std::string readBuffer;
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+        const char *apiKey = std::getenv("ALPHA_VANTAGE_API_KEY");
+        const char *ticker = "ABNB";
+
+        curl_easy_setopt(curl, CURLOPT_URL, fmt::format("https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={}&outputsize=full&apikey={}", ticker, apiKey).data());
+
+        struct curl_slist *headers = NULL;
+        if (apiKey)
         {
-            std::string readBuffer;
-            curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-            curl_easy_setopt(curl, CURLOPT_URL, fmt::format("https://api.polygon.io/v3/reference/options/contracts/{}", ticker).data());
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 
-            struct curl_slist *headers = NULL;
-            const char *apiKey = std::getenv("POLYGON_API_KEY");
-            if (apiKey)
+            CURLcode ret = curl_easy_perform(curl);
+
+            if (ret == 0)
             {
-                headers = curl_slist_append(headers, fmt::format("Authorization: Bearer {}", apiKey).data());
-                curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-                curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+                // Parse the json response -> {dates, closePrices, datapoints}
+                nlohmann::json data = nlohmann::json::parse(readBuffer);
+                nlohmann::json timeseriesData = data["Time Series (Daily)"];
 
-                CURLcode ret = curl_easy_perform(curl);
-
-                if (ret == 0)
+                for (auto it = timeseriesData.begin(); it != timeseriesData.end(); ++it)
                 {
-                    nlohmann::json data = nlohmann::json::parse(readBuffer);
-                    double p = data["results"]["strike_price"];
-                    std::string ticker = data["results"]["underlying_ticker"];
-                    stocks.push_back(Stock(p, ticker));
+                    dates.push_back(it.key());
+                    std::string conversionString = it.value()["4. close"];
+                    float closePrice = atof(conversionString.data());
+                    closePrices.push_back(closePrice);
                 }
             }
         }
         curl_easy_cleanup(curl);
     }
+    int datapoints = dates.size();
+    return std::make_tuple(dates, closePrices, datapoints);
+}
 
-    return stocks;
+void parseData()
+{
+
+    std::tuple<std::vector<std::string>, std::vector<float>, int> data = getStocks();
+    std::vector<float> prices = std::get<1>(data);
+    std::vector<std::vector<float>> x{};
+    std::vector<float> y{};
+    size_t right = 19;
+    size_t fast = 20;
+
+    for (size_t right = 20; right < prices.size(); right++)
+    {
+        std::vector<float> x_vector{};
+
+        for (size_t left = right - 20; left < right; left++)
+        {
+            x_vector.push_back(prices[left]);
+        }
+        x.push_back(x_vector);
+        y.push_back(prices[right]);
+    }
+    std::cout << "X length: " << x.size() << std::endl
+              << "Y length: " << y.size() << std::endl;
 }
