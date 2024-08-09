@@ -4,6 +4,23 @@
 #include <fmt/core.h>
 #include <nlohmann/json.hpp>
 #include <cmath>
+
+class StockDataset : public torch::data::Dataset<StockDataset>
+{
+private:
+    std::vector<std::vector<float>> x_data;
+    std::vector<float> y_data;
+
+public:
+    // Constructor
+    StockDataset(const std::vector<std::vector<float>> &x, const std::vector<float> &y) : x_data(x), y_data(y) {};
+
+    torch::data::Example<> get(size_t index) override
+    {
+        std::vector<float> &x_item = x_data[index];
+        float y_item = y_data[index];
+    }
+};
 size_t WriteCallback(void *contents, size_t size, size_t nmemb, std::string *output)
 {
     size_t totalSize = size * nmemb;
