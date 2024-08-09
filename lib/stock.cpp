@@ -3,7 +3,7 @@
 #include <curl/curl.h>
 #include <fmt/core.h>
 #include <nlohmann/json.hpp>
-
+#include <cmath>
 size_t WriteCallback(void *contents, size_t size, size_t nmemb, std::string *output)
 {
     size_t totalSize = size * nmemb;
@@ -58,27 +58,39 @@ std::tuple<std::vector<std::string>, std::vector<float>, int> getStocks()
     return std::make_tuple(dates, closePrices, datapoints);
 }
 
-void parseData()
+std::tuple<std::vector<std::vector<float>>, std::vector<float>, std::vector<std::vector<float>>, std::vector<float>> parseData()
 {
 
     std::tuple<std::vector<std::string>, std::vector<float>, int> data = getStocks();
     std::vector<float> prices = std::get<1>(data);
     std::vector<std::vector<float>> x{};
+    int window_size = 20;
     std::vector<float> y{};
-    size_t right = 19;
-    size_t fast = 20;
+    size_t right = window_size - 1;
+    size_t fast = window_size;
 
-    for (size_t right = 20; right < prices.size(); right++)
+    for (size_t right = window_size; right < prices.size(); right++)
     {
-        std::vector<float> x_vector{};
+        std::vector<float> xVector{};
 
-        for (size_t left = right - 20; left < right; left++)
+        for (size_t left = right - window_size; left < right; left++)
         {
-            x_vector.push_back(prices[left]);
+            xVector.push_back(prices[left]);
         }
-        x.push_back(x_vector);
+        x.push_back(xVector);
         y.push_back(prices[right]);
     }
-    std::cout << "X length: " << x.size() << std::endl
-              << "Y length: " << y.size() << std::endl;
+    // Compute index
+    int split_index = std::floor(y.size() * 0.80);
+    std::cout << split_index << std::endl;
+
+    std::vector<std::vector<float>> xTrainingData = std::vector<std::vector<float>>(x.begin(), x.begin() + split_index);
+    std::vector<float> yTrainingData = std::vector<float>(y.begin(), y.begin() + split_index);
+    std::vector<std::vector<float>> xValidationData = std::vector<std::vector<float>>(x.begin() + split_index, x.end());
+    std::vector<float> yValidationData = std::vector<float>(y.begin() + split_index, y.end());
+
+    std::cout << "X Training length: " << xTrainingData.size() << std::endl
+              << "Y Training length: " << yTrainingData.size() << std::endl
+              << "X Validation length: " << xValidationData.size() << std::endl
+              << "Y Validation length: " << yValidationData.size() << std::endl;
 }
