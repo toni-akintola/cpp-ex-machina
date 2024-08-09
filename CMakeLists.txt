@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 project(cppEngine)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -9,12 +9,14 @@ set(CMAKE_CXX_STANDARD 20)
 find_package(CURL REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 find_package(nlohmann_json 3.11.3 REQUIRED)
+find_package(Torch REQUIRED)
 find_package(fmt)
 
 set(SOURCES
     src/main.cpp
     lib/stock.cpp
 )
+set(CMAKE_OSX_DEPLOYMENT_TARGET 13.6)
 
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
@@ -28,4 +30,5 @@ target_link_libraries(${PROJECT_NAME}
     fmt::fmt
     Eigen3::Eigen
     nlohmann_json::nlohmann_json
+    ${TORCH_LIBRARIES}
 )

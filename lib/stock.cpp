@@ -93,4 +93,6 @@ std::tuple<std::vector<std::vector<float>>, std::vector<float>, std::vector<std:
               << "Y Training length: " << yTrainingData.size() << std::endl
               << "X Validation length: " << xValidationData.size() << std::endl
               << "Y Validation length: " << yValidationData.size() << std::endl;
+
+    return std::make_tuple(xTrainingData, yTrainingData, xValidationData, yValidationData);
 }
