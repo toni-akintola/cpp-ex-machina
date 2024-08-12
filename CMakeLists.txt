@@ -4,7 +4,6 @@ project(cppEngine)
 set(CMAKE_CXX_STANDARD 20)
 
 
-
 # Find curl package
 find_package(CURL REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)

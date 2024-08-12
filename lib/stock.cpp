@@ -2,25 +2,10 @@
 #include <iostream>
 #include <curl/curl.h>
 #include <fmt/core.h>
+#include <tuple>
 #include <nlohmann/json.hpp>
 #include <cmath>
 
-class StockDataset : public torch::data::Dataset<StockDataset>
-{
-private:
-    std::vector<std::vector<float>> x_data;
-    std::vector<float> y_data;
-
-public:
-    // Constructor
-    StockDataset(const std::vector<std::vector<float>> &x, const std::vector<float> &y) : x_data(x), y_data(y) {};
-
-    torch::data::Example<> get(size_t index) override
-    {
-        std::vector<float> &x_item = x_data[index];
-        float y_item = y_data[index];
-    }
-};
 size_t WriteCallback(void *contents, size_t size, size_t nmemb, std::string *output)
 {
     size_t totalSize = size * nmemb;
@@ -72,10 +57,11 @@ std::tuple<std::vector<std::string>, std::vector<float>, int> getStocks()
         curl_easy_cleanup(curl);
     }
     int datapoints = dates.size();
+
     return std::make_tuple(dates, closePrices, datapoints);
 }
 
-std::tuple<std::vector<std::vector<float>>, std::vector<float>, std::vector<std::vector<float>>, std::vector<float>> parseData()
+std::tuple<StockDataset, StockDataset> parseData()
 {
 
     std::tuple<std::vector<std::string>, std::vector<float>, int> data = getStocks();
@@ -111,5 +97,8 @@ std::tuple<std::vector<std::vector<float>>, std::vector<float>, std::vector<std:
               << "X Validation length: " << xValidationData.size() << std::endl
               << "Y Validation length: " << yValidationData.size() << std::endl;
 
-    return std::make_tuple(xTrainingData, yTrainingData, xValidationData, yValidationData);
+    StockDataset trainingDataset(xTrainingData, yTrainingData);
+    StockDataset validationDataset(xValidationData, yValidationData);
+
+    return std::make_tuple(trainingDataset, validationDataset);
 }
