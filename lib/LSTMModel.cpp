@@ -21,6 +21,14 @@ LSTMModel::LSTMModel(int64_t inputSize, int64_t hiddenLayerSize, int64_t numLaye
 }
 
 torch::Tensor LSTMModel::forward(torch::Tensor x) {
+    x = linear1->forward(x);
+
+    auto lstm_output = std::get<0>(lstm->forward(x));
+    x = dropout->forward(lstm_output);
+
+    x = linear2->forward(x);
+    
     return x;
 }
+
 
