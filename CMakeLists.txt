@@ -14,6 +14,8 @@ find_package(fmt)
 set(SOURCES
     src/main.cpp
     lib/stock.cpp
+    lib/Normalizer.cpp
+    lib/LSTMModel.cpp
 )
 set(CMAKE_OSX_DEPLOYMENT_TARGET 13.6)
 
