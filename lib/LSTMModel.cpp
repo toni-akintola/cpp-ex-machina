@@ -31,4 +31,51 @@ torch::Tensor LSTMModel::forward(torch::Tensor x) {
     return x;
 }
 
+std::pair<float, float> run_epoch(
+    LSTMModel &model,
+    auto &dataloader,
+    torch::optim::Optimizer &optimizer,
+    torch::nn::Module &criterion,
+    torch::optim::LRScheduler &scheduler,
+    torch::Device device,
+    bool is_training = false)
+{
+    float epoch_loss = 0.0f;
 
+    if (is_training)
+    {
+        model.train();
+    }
+    else
+    {
+        model.eval();
+    }
+
+    for (auto &batch : dataloader)
+    {
+        auto data = batch.data.to(device);
+        auto target = batch.target.to(device);
+
+        if (is_training)
+        {
+            optimizer.zero_grad();
+        }
+
+        int64_t batchsize = data.size(0);
+
+        torch::Tensor output = model.forward(data);
+        torch::Tensor loss = criterion(output.contiguous(), target.contiguous());
+
+        if (is_training)
+        {
+            loss.backward();
+            optimizer.step();
+        }
+
+        epoch_loss += loss.item<float>() / batchsize;
+    }
+
+    float lr = 0;
+
+    return {epoch_loss, lr};
+}
