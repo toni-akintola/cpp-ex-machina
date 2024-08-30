@@ -17,7 +17,9 @@ int main() {
     const int64_t numLayers = 2;
     const int64_t batch_size = 20;
     const int64_t outputSize = 1;
+    const size_t num_epochs = 50;
     double dropoutRate = 0.2;
+    const double learning_rate = 0.001;
 
     LSTMModel model(inputSize, hiddenLayerSize, numLayers, outputSize, dropoutRate);
     model.to(device);
@@ -34,6 +36,23 @@ int main() {
         std::move(training_dataset), batch_size);
     auto test_loader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(std::move(test_dataset), batch_size);
 
+    // Optimizer
+    torch::optim::SGD optimizer(model.parameters(), torch::optim::SGDOptions(learning_rate));
+
+    std::cout << std::fixed << std::setprecision(4);
+
+    std::cout << "Training..." << std::endl;
+
+    // Training model
+    for (size_t epoch = 0; epoch < num_epochs; ++epoch)
+    {
+        double epoch_loss = 0.0;
+        model.train();
+        for (auto &batch : *train_loader)
+        {
+            optimizer.zero_grad();
+        }
+    }
     torch::Tensor input = torch::randn({1, 5, inputSize});
 
     torch::Tensor output = model.forward(input);
